@@ -1,0 +1,1629 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bite&Go</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;700;900&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0D0D0D;
+    --paper-dim:#161616;
+    --surface:#111111;
+    --ink:#F2F0EB;
+    --ink-soft:#666666;
+    --brand:#FF4D00;
+    --brand-dark:#E04400;
+    --coral:#FF4D00;
+    --sage:#4CAF50;
+    --line:#1E1E1E;
+    --hot:#FF4D00;
+    --cold:#3D7EFF;
+    --nav-h:64px;
+    --gold:#FFB800;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Outfit',sans-serif;
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+  .app{
+    max-width:430px;
+    margin:0 auto;
+    min-height:100vh;
+    background:var(--bg);
+    position:relative;
+  }
+
+  .topbar{
+    padding:18px 20px 12px;
+    background:rgba(13,13,13,0.96);
+    position:sticky;
+    top:0;
+    z-index:30;
+    backdrop-filter:blur(12px);
+  }
+  .topbar-row{display:flex;align-items:center;justify-content:space-between;}
+  .brand{
+    font-family:'JetBrains Mono',monospace;
+    font-weight:700;
+    font-size:11px;
+    letter-spacing:0.25em;
+    color:var(--brand);
+    margin:0;
+    text-transform:uppercase;
+  }
+  .brand .go{color:var(--brand);}
+  .staff-tag{
+    font-family:'JetBrains Mono',monospace;
+    font-weight:600;
+    font-size:9px;
+    letter-spacing:0.12em;
+    color:#555;
+    background:#1A1A1A;
+    padding:3px 8px;
+    border-radius:6px;
+    margin-left:8px;
+    vertical-align:2px;
+    text-transform:uppercase;
+  }
+  .icon-btn{
+    width:36px;height:36px;
+    border-radius:10px;
+    border:1px solid #2A2A2A;
+    background:#161616;
+    font-size:15px;
+    display:flex;align-items:center;justify-content:center;
+    cursor:pointer;
+    color:var(--ink);
+  }
+  .dropdown-menu{
+    position:absolute;
+    right:20px;
+    top:60px;
+    background:#161616;
+    border:1px solid #2A2A2A;
+    border-radius:12px;
+    box-shadow:0 10px 28px rgba(0,0,0,0.45);
+    overflow:hidden;
+    z-index:40;
+  }
+  .dropdown-menu button{
+    display:block;
+    width:100%;
+    text-align:left;
+    padding:13px 16px;
+    border:none;
+    background:none;
+    font-family:'Outfit',sans-serif;
+    font-size:13.5px;
+    font-weight:600;
+    color:var(--ink);
+    cursor:pointer;
+    white-space:nowrap;
+  }
+  .dropdown-menu button:hover{background:#1A1A1A;}
+
+  .screen{padding:4px 16px 20px;}
+  .nav-spacer{height:88px;}
+
+  .hero-full{margin:0 -16px;min-height:100vh;display:flex;flex-direction:column;}
+  .hero-photo{position:relative;width:100%;height:52vh;overflow:hidden;}
+  .hero-photo img{width:100%;height:100%;object-fit:cover;display:block;}
+  .hero-photo-fallback{
+    position:absolute;inset:0;
+    background:linear-gradient(160deg,#1a120e 0%,#0D0D0D 100%);
+  }
+  .hero-photo-grad{
+    position:absolute;inset:0;
+    background:linear-gradient(160deg, rgba(13,13,13,0.15) 0%, rgba(13,13,13,0.97) 100%);
+  }
+  .hero-photo-top{
+    position:absolute;top:0;left:0;right:0;
+    display:flex;align-items:center;justify-content:space-between;
+    padding:48px 20px 0;
+  }
+  .hero-kz{font-family:'JetBrains Mono',monospace;font-size:10px;color:#555;letter-spacing:0.1em;}
+  .hero-body{flex:1;padding:8px 20px 28px;display:flex;flex-direction:column;justify-content:space-between;}
+  .hero h1, .hero-title{
+    font-family:'Unbounded',sans-serif;
+    font-size:36px;
+    font-weight:900;
+    line-height:1.1;
+    margin:0 0 12px;
+    color:var(--ink);
+  }
+  .hero-title .accent{color:var(--brand);}
+  .hero-sub{font-size:13px;color:#666;line-height:1.6;margin:0 0 28px;}
+  .field-mono{
+    display:block;
+    font-family:'JetBrains Mono',monospace;
+    font-size:10px;
+    letter-spacing:0.2em;
+    color:#444;
+    margin-bottom:8px;
+    text-transform:uppercase;
+  }
+  .select-wrap{position:relative;}
+  .location-select, .location-pill-select{
+    appearance:none;
+    width:100%;
+    background:#161616;
+    color:var(--ink);
+    border:1px solid #2A2A2A;
+    border-radius:14px;
+    padding:14px 44px 14px 16px;
+    font-family:'Outfit',sans-serif;
+    font-size:14px;
+    cursor:pointer;
+  }
+  .select-caret{position:absolute;right:16px;top:50%;transform:translateY(-50%);color:#555;pointer-events:none;}
+  select option{background:#161616;color:#F2F0EB;}
+
+  h2.section-title{
+    font-family:'Unbounded',sans-serif;
+    font-size:26px;
+    font-weight:900;
+    margin:0 0 12px;
+    line-height:1.1;
+  }
+  .kicker{
+    font-family:'JetBrains Mono',monospace;
+    font-size:10px;
+    letter-spacing:0.2em;
+    color:var(--brand);
+    text-transform:uppercase;
+    margin-bottom:6px;
+  }
+  .back-link{
+    background:none;border:none;
+    color:#555;
+    font-size:11px;
+    font-weight:500;
+    letter-spacing:0.1em;
+    padding:6px 0 14px;
+    cursor:pointer;
+    display:flex;align-items:center;gap:8px;
+    font-family:'JetBrains Mono',monospace;
+  }
+
+  .cat-row{display:flex;gap:8px;overflow-x:auto;padding-bottom:10px;scrollbar-width:none;}
+  .cat-row::-webkit-scrollbar{display:none;}
+  .cat-chip{
+    flex-shrink:0;
+    border-radius:999px;
+    padding:6px 14px;
+    font-size:12px;
+    font-family:'Outfit',sans-serif;
+    cursor:pointer;
+    border:1px solid #222;
+    background:#1A1A1A;
+    color:#777;
+  }
+  .cat-chip.on{background:var(--brand);color:#0D0D0D;border-color:var(--brand);font-weight:600;}
+
+  .menu-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .menu-card{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:20px;
+    overflow:hidden;
+  }
+  .menu-card-photo{
+    position:relative;
+    width:100%;
+    height:140px;
+    background:#1A1A1A;
+  }
+  .menu-card-photo img{
+    width:100%;height:100%;
+    object-fit:cover;
+    display:block;
+  }
+  .menu-card-photo-fallback{
+    position:absolute;inset:0;
+    display:flex;align-items:center;justify-content:center;
+    font-size:10px;font-weight:700;letter-spacing:0.08em;
+    color:var(--brand);
+    font-family:'JetBrains Mono',monospace;
+  }
+  .cat-badge{
+    position:absolute;top:8px;left:8px;
+    background:rgba(13,13,13,0.75);
+    backdrop-filter:blur(8px);
+    border-radius:8px;
+    padding:3px 8px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:9px;
+    color:var(--brand);
+    letter-spacing:0.08em;
+  }
+  .menu-card-body{padding:12px;}
+  .menu-card-name{font-size:13px;font-weight:600;margin:0 0 2px;}
+  .menu-card-desc{font-size:10px;color:#505050;margin:0 0 10px;line-height:1.4;}
+  .menu-card-price{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:var(--brand);}
+  .menu-card-row{display:flex;align-items:center;justify-content:space-between;}
+  .qty-control{display:flex;align-items:center;gap:8px;flex-shrink:0;}
+  .qty-btn{
+    width:26px;height:26px;
+    border-radius:50%;
+    border:1px solid #333;
+    background:#1E1E1E;
+    font-size:16px;font-weight:700;color:var(--ink);
+    display:flex;align-items:center;justify-content:center;
+    cursor:pointer;line-height:1;
+  }
+  .qty-btn.add{background:var(--brand);color:#0D0D0D;border-color:var(--brand);width:30px;height:30px;font-size:20px;}
+  .qty-num{min-width:16px;text-align:center;font-weight:700;font-size:13px;font-family:'JetBrains Mono',monospace;}
+
+  .cart-bar{
+    position:fixed;
+    left:50%;
+    transform:translateX(-50%);
+    bottom:calc(var(--nav-h) + 10px);
+    width:calc(100% - 32px);
+    max-width:398px;
+    background:var(--brand);
+    color:#0D0D0D;
+    padding:16px 20px;
+    display:flex;align-items:center;justify-content:space-between;
+    cursor:pointer;
+    border:none;
+    font:inherit;
+    border-radius:16px;
+    box-shadow:0 8px 32px rgba(255,77,0,0.35);
+    z-index:31;
+  }
+  .cart-bar.hidden{display:none;}
+  .cart-bar-left{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;}
+  .cart-bar-right{font-family:'Unbounded',sans-serif;font-weight:700;font-size:12px;}
+
+  .btn-primary{
+    width:100%;padding:16px;border:none;border-radius:14px;
+    background:var(--brand);color:#0D0D0D;
+    font-family:'Unbounded',sans-serif;font-weight:700;font-size:13px;
+    letter-spacing:0.08em;
+    cursor:pointer;transition:background .15s ease, transform .1s ease;
+  }
+  .btn-primary:active{transform:scale(0.985);}
+  .btn-primary:hover{background:var(--brand-dark);}
+  .btn-primary:disabled{background:#1A1A1A;color:#333;cursor:not-allowed;box-shadow:none;}
+  .btn-secondary{
+    width:100%;padding:13px;border:1px solid var(--line);border-radius:12px;
+    background:#111;color:var(--ink);
+    font-family:'Outfit',sans-serif;font-weight:600;font-size:13.5px;
+    cursor:pointer;margin-top:10px;
+  }
+  .btn-text{
+    display:block;width:100%;text-align:center;
+    background:none;border:none;
+    color:#383838;font-size:11px;font-weight:500;
+    padding:12px 0 0;cursor:pointer;
+    font-family:'JetBrains Mono',monospace;
+  }
+  .btn-gold{
+    width:100%;padding:14px;border:none;border-radius:12px;
+    background:var(--gold);color:#0D0D0D;
+    font-family:'Unbounded',sans-serif;font-weight:700;font-size:12px;
+    letter-spacing:0.06em;cursor:pointer;
+  }
+  .btn-sage{
+    width:100%;padding:14px;border:none;border-radius:12px;
+    background:var(--sage);color:#fff;
+    font-family:'Unbounded',sans-serif;font-weight:700;font-size:12px;
+    letter-spacing:0.06em;cursor:pointer;
+  }
+
+  .dark-card{
+    background:#111;border:1px solid #1E1E1E;border-radius:16px;padding:14px 16px;
+  }
+  .slot-list{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:18px;}
+  .slot-pill{
+    border:1px solid #1E1E1E;border-radius:12px;padding:12px 4px;
+    text-align:center;cursor:pointer;background:#111;
+    font-family:'JetBrains Mono',monospace;font-size:10px;color:#666;letter-spacing:0.04em;
+  }
+  .slot-pill.selected{border-color:var(--brand);background:var(--brand);color:#0D0D0D;font-weight:700;}
+  .slot-time{font-weight:700;font-size:10px;margin:0;}
+  .slot-note{display:none;}
+  .radio-dot{display:none;}
+
+  .review-row{display:flex;justify-content:space-between;padding:12px 0;font-size:13px;border-top:1px solid #1A1A1A;}
+  .review-row:first-child{border-top:none;}
+  .review-row.total{border-top:1px solid #1E1E1E;margin-top:6px;padding-top:14px;font-weight:700;font-size:18px;font-family:'JetBrains Mono',monospace;}
+
+  .center-screen{display:flex;flex-direction:column;align-items:center;text-align:center;padding-top:60px;}
+  .spinner{width:44px;height:44px;border:3px solid #1E1E1E;border-top-color:var(--brand);border-radius:50%;animation:spin .9s linear infinite;margin-bottom:20px;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  .bottom-nav{
+    position:fixed;left:50%;transform:translateX(-50%);
+    bottom:0;width:100%;max-width:430px;height:var(--nav-h);
+    background:rgba(13,13,13,0.95);border-top:1px solid #1E1E1E;
+    display:flex;z-index:30;backdrop-filter:blur(16px);
+  }
+  .bottom-nav button{
+    flex:1;border:none;background:none;cursor:pointer;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+    font-family:'Outfit',sans-serif;font-size:10px;font-weight:500;letter-spacing:0.04em;
+    color:#444;position:relative;
+  }
+  .bottom-nav button.active{color:var(--brand);}
+  .bottom-nav .nav-icon{font-size:18px;line-height:1;}
+  .nav-dot{
+    position:absolute;top:6px;right:calc(50% - 16px);
+    width:7px;height:7px;border-radius:50%;background:var(--coral);
+  }
+
+  .empty-state{text-align:center;padding:70px 20px;color:#444;font-size:13px;}
+  .empty-state .big{font-family:'Unbounded',sans-serif;font-size:18px;color:var(--ink);font-weight:700;margin-bottom:8px;}
+
+  .status-card{
+    background:#111;border:1px solid #1E1E1E;border-radius:20px;
+    padding:16px;margin-bottom:16px;
+  }
+  .status-line{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:600;margin-bottom:10px;}
+  .status-line .dot{width:7px;height:7px;border-radius:50%;}
+  .status-order-id{font-family:'JetBrains Mono',monospace;font-size:12px;color:#444;margin-bottom:12px;}
+  .prep-banner{
+    display:flex;justify-content:space-between;align-items:center;
+    background:#161616;border-radius:10px;padding:12px 14px;
+    font-size:13px;font-weight:600;margin-bottom:4px;
+    font-family:'JetBrains Mono',monospace;color:var(--brand);
+  }
+  .ticket-items{margin-top:10px;border-top:1px solid #1A1A1A;padding-top:10px;}
+  .ticket-item-row{display:flex;justify-content:space-between;font-size:13px;padding:8px 0;color:#A8A5A0;}
+
+  .timeline{background:#111;border:1px solid #1E1E1E;border-radius:20px;padding:16px;margin-bottom:16px;}
+  .tl-row{display:flex;align-items:stretch;gap:12px;}
+  .tl-dot{
+    width:28px;height:28px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;flex-shrink:0;
+  }
+  .tl-dot.on{background:var(--brand);color:#0D0D0D;}
+  .tl-dot.off{background:#1E1E1E;color:#444;opacity:0.4;}
+  .tl-line{width:2px;flex:1;min-height:20px;margin:4px auto;}
+  .tl-line.on{background:var(--brand);}
+  .tl-line.off{background:#1E1E1E;}
+  .status-pill{
+    border-radius:999px;padding:5px 12px;
+    font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.08em;
+    white-space:nowrap;
+  }
+
+  .locker-moment{text-align:center;margin:8px 0 18px;}
+  .locker-moment .box-icon{font-size:34px;margin-bottom:6px;}
+  .locker-wordmark{
+    font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;
+    letter-spacing:0.2em;color:#444;margin:0 0 10px;text-transform:uppercase;
+  }
+  .locker-headline{
+    font-family:'Unbounded',sans-serif;font-size:22px;font-weight:700;
+    color:var(--gold);margin:0 0 4px;
+  }
+  .locker-code{
+    font-family:'Unbounded',sans-serif;font-size:30px;font-weight:900;
+    letter-spacing:1px;margin:0;
+  }
+
+  .locker-panel{
+    background:#111;
+    border:1px solid #1E1E1E;
+    border-radius:20px;
+    padding:16px;
+    margin-bottom:16px;
+  }
+  .locker-panel-header{
+    display:flex;justify-content:space-between;align-items:center;
+    margin-bottom:14px;
+  }
+  .locker-panel-title{
+    font-family:'JetBrains Mono',monospace;font-weight:700;font-size:9px;
+    color:#444;letter-spacing:0.18em;text-transform:uppercase;
+  }
+  .locker-online{
+    display:inline-flex;align-items:center;gap:5px;
+    font-size:9.5px;font-weight:700;color:#4ADE9A;letter-spacing:0.5px;
+    font-family:'JetBrains Mono',monospace;
+  }
+  .locker-online .pulse{width:6px;height:6px;border-radius:50%;background:#4ADE9A;}
+  .locker-zone-label{
+    font-size:10px;font-weight:700;letter-spacing:0.08em;
+    margin:10px 0 6px;
+    font-family:'JetBrains Mono',monospace;
+  }
+  .locker-zone-label.hot{color:var(--hot);}
+  .locker-zone-label.cold{color:#5E9BFF;}
+  .locker-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  .locker-cell{
+    aspect-ratio:1;border-radius:14px;
+    border:2px solid #282828;background:#1A1A1A;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    color:#333;font-weight:700;font-size:13px;
+    font-family:'JetBrains Mono',monospace;
+  }
+  .locker-cell.active.hot{background:rgba(255,77,0,0.12);border-color:var(--hot);color:var(--ink);box-shadow:0 0 24px rgba(255,77,0,0.3);}
+  .locker-cell.active.cold{background:rgba(61,126,255,0.12);border-color:#5E9BFF;color:var(--ink);box-shadow:0 0 24px rgba(61,126,255,0.3);}
+  .locker-cell-dot{width:8px;height:8px;border-radius:50%;background:#4ADE9A;margin-bottom:4px;}
+
+  .locker-panel-center{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:34px 18px;text-align:center;background:#111;border:1px solid #1E1E1E;border-radius:20px;}
+  .unlock-emoji{font-size:38px;margin-bottom:10px;}
+  .unlock-title{font-family:'Unbounded',sans-serif;font-weight:700;font-size:16px;color:var(--ink);margin:0;}
+  .unlock-sub{font-size:12.5px;color:#555;margin:6px 0 0;}
+
+  .qr-wrap{display:flex;justify-content:center;margin:16px 0 10px;}
+  .qr-grid{
+    display:grid;grid-template-columns:repeat(11,1fr);gap:2.4px;
+    width:150px;height:150px;padding:11px;background:#161616;border:1px solid #2A2A2A;border-radius:10px;
+  }
+  .qr-cell{background:#F2F0EB;border-radius:1px;}
+  .qr-cell.on{background:transparent;}
+  .qr-refresh-note{text-align:center;font-size:11.5px;color:#444;margin-bottom:16px;}
+
+  .staff-session-bar{
+    display:flex;justify-content:space-between;align-items:center;
+    font-size:12px;font-weight:600;color:#444;
+    margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid #1E1E1E;
+  }
+  .staff-session-bar button{background:none;border:none;color:#383838;font-weight:500;font-size:11px;cursor:pointer;padding:0;font-family:'JetBrains Mono',monospace;}
+
+  .stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:18px;}
+  .stat-box{
+    background:#111;border:1px solid #1E1E1E;border-radius:16px;
+    padding:12px 8px;text-align:center;cursor:pointer;
+  }
+  .stat-box.active-filter{background:#161616;}
+  .stat-box.active-filter.new{border-color:var(--coral);}
+  .stat-box.active-filter.progress{border-color:var(--gold);}
+  .stat-box.active-filter.ready{border-color:var(--sage);}
+  .stat-num{font-family:'JetBrains Mono',monospace;font-size:24px;font-weight:700;display:block;}
+  .stat-label{font-size:10px;color:#555;font-weight:500;margin-top:2px;}
+  .stat-box.new .stat-num{color:var(--coral);}
+  .stat-box.progress .stat-num{color:var(--gold);}
+  .stat-box.ready .stat-num{color:var(--sage);}
+
+  .staff-order-card{
+    display:block;width:100%;text-align:left;color:inherit;font:inherit;
+    background:#111;border:1px solid #1E1E1E;
+    border-radius:18px;padding:14px 16px;margin-bottom:8px;cursor:pointer;
+  }
+  .staff-order-card.new{}
+  .staff-order-card.progress{}
+  .staff-order-card.ready{}
+  .staff-order-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+  .staff-order-id{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:16px;}
+  .staff-order-slot{font-size:10px;font-weight:700;color:#3A3A3A;font-family:'JetBrains Mono',monospace;}
+  .staff-order-items{font-size:12px;color:#555;margin:0 0 8px;}
+  .staff-order-loc{font-size:11.5px;color:#444;margin:0;}
+  .staff-badge{
+    border-radius:999px;padding:3px 10px;
+    font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:0.04em;
+  }
+
+  .scan-input-wrap{display:flex;gap:8px;margin-bottom:22px;}
+  .scan-input-wrap input{
+    flex:1;padding:10px 14px;border:1px solid #1E1E1E;border-radius:12px;
+    font-family:'JetBrains Mono',monospace;font-size:12px;text-transform:uppercase;
+    background:#111;color:var(--ink);letter-spacing:0.1em;
+  }
+  .field-label{font-size:9px;color:#444;font-weight:500;margin:0 0 10px;font-family:'JetBrains Mono',monospace;letter-spacing:0.18em;text-transform:uppercase;}
+  .text-input{
+    width:100%;padding:16px;border:1px solid #2A2A2A;border-radius:14px;
+    background:#161616;font-family:'JetBrains Mono',monospace;font-size:18px;color:var(--ink);
+    margin-bottom:16px;letter-spacing:0.3em;text-align:center;font-weight:700;
+  }
+
+  .fulfil-card{background:#111;border:1px solid #1E1E1E;border-radius:20px;padding:20px;}
+  .fulfil-badge{display:inline-block;font-size:10px;font-weight:700;padding:4px 10px;border-radius:999px;margin-bottom:14px;letter-spacing:0.08em;font-family:'JetBrains Mono',monospace;}
+  .fulfil-badge.paid{color:var(--coral);background:rgba(255,77,0,0.12);border:1px solid rgba(255,77,0,0.27);}
+  .fulfil-badge.accepted{color:var(--gold);background:rgba(255,184,0,0.12);border:1px solid rgba(255,184,0,0.27);}
+  .fulfil-badge.ready{color:var(--sage);background:rgba(76,175,80,0.12);border:1px solid rgba(76,175,80,0.27);}
+  .fulfil-badge.delivered{color:#444;background:#161616;border:1px solid #2A2A2A;}
+
+  .prep-time-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px;}
+  .prep-time-btn{
+    padding:10px 0;border:1px solid #2A2A2A;border-radius:10px;background:#1E1E1E;
+    font-family:'JetBrains Mono',monospace;font-weight:400;font-size:12px;color:#777;cursor:pointer;
+  }
+  .prep-time-btn.selected{border-color:var(--brand);background:var(--brand);color:#0D0D0D;font-weight:700;}
+
+  .zone-pick{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;}
+  .zone-btn{
+    padding:12px 8px;border-radius:10px;border:1px solid #2A2A2A;background:#1A1A1A;color:#666;cursor:pointer;font-size:13px;
+  }
+  .zone-btn.on.hot{background:rgba(255,77,0,0.08);color:var(--hot);border-color:rgba(255,77,0,0.31);}
+  .zone-btn.on.cold{background:rgba(61,126,255,0.08);color:#5E9BFF;border-color:rgba(94,155,255,0.31);}
+
+  .toast{
+    position:fixed;bottom:80px;left:50%;transform:translateX(-50%);
+    background:#161616;color:#fff;padding:11px 18px;border-radius:10px;border:1px solid #2A2A2A;
+    font-size:13px;font-weight:600;z-index:100;box-shadow:0 6px 18px rgba(0,0,0,0.4);
+    opacity:0;transition:opacity .2s ease;pointer-events:none;
+    max-width:90%;
+  }
+  .toast.show{opacity:1;}
+
+  .storage-warning{
+    background:rgba(255,77,0,0.12);
+    color:var(--coral);
+    font-size:11.5px;
+    font-weight:600;
+    text-align:center;
+    padding:9px 16px;
+    line-height:1.4;
+  }
+
+  .more-card{background:#111;border:1px solid #1E1E1E;border-radius:18px;padding:16px;margin-bottom:8px;display:flex;gap:16px;align-items:flex-start;}
+  .more-card p{font-size:12px;color:#555;margin:0;line-height:1.55;}
+  .more-card h3{font-family:'Outfit',sans-serif;font-size:14px;margin:0 0 4px;font-weight:600;}
+  .more-icon{width:40px;height:40px;border-radius:12px;background:#1A1A1A;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+  .more-step{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--brand);letter-spacing:0.15em;margin-bottom:3px;}
+  .easter{opacity:0.35;width:100%;padding:12px;background:#111;border:1px solid #181818;border-radius:12px;color:#444;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.25em;cursor:pointer;}
+</style>
+</head>
+<body>
+<div class="app" id="app"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ---------- Data ---------- */
+/* Menu/locations/slots now come from the server — single source of truth.
+   Populated by boot() before the first render(). */
+let LOCATIONS = [];
+let MENU = [];
+let SLOTS = [];
+const TRAYS = [1,2,3];
+const LS_ORDER = "bitego_current_order";
+const LS_STAFF = "bitego_staff_session";
+
+const STATUS_META = {
+  paid:      { label: "Оплата подтверждена", dot: "var(--coral)" },
+  accepted:  { label: "Готовится", dot: "var(--gold)" },
+  ready:     { label: "В Locker — ждёт тебя", dot: "var(--gold)" },
+  delivered: { label: "Выдан", dot: "var(--sage)" },
+};
+
+/* ---------- State ---------- */
+let state = {
+  role: "student",        // student | staff
+  tab: "order",            // order | tickets | more   (student bottom nav)
+  step: "hero",            // hero | menu | slot | review | paying
+  menuOpen: false,
+  location: null,
+  cart: {},
+  slot: null,
+  currentOrder: null,
+  lockerOpening: false,
+  showStaffFallbackQr: false,
+  menuCat: "Все",
+  moreTaps: 0,
+
+  scanInput: "",
+  staffAuthLocation: null,
+  staffAuthName: null,
+  staffPinInput: "",
+  staffSelectedOrder: null,
+  staffPrepMinutes: 10,
+  staffZone: "hot",
+  staffTray: 1,
+  staffFilter: "all",
+};
+
+/* ---------- API client ---------- */
+let serverOffline = false;
+
+async function apiFetch(url, opts){
+  let res;
+  try{
+    res = await fetch(url, opts);
+    if(serverOffline){ serverOffline = false; render(); }
+  }catch(e){
+    if(!serverOffline){ serverOffline = true; render(); }
+    throw new Error("Нет связи с сервером");
+  }
+  if(!res.ok){
+    let err = {};
+    try{ err = await res.json(); }catch(_){}
+    throw new Error(err.error || ("HTTP " + res.status));
+  }
+  if(res.status === 204) return null;
+  return res.json();
+}
+
+const api = {
+  config: () => apiFetch('/api/config'),
+  staffLogin: (code) => apiFetch('/api/staff/login', {
+    method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({code})
+  }),
+  createOrder: (order) => apiFetch('/api/orders', {
+    method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(order)
+  }),
+  listOrders: (location) => apiFetch('/api/orders' + (location ? ('?location=' + encodeURIComponent(location)) : '')),
+  getOrder: (id) => apiFetch('/api/orders/' + encodeURIComponent(id)),
+  acceptOrder: (id, minutes, staffName) => apiFetch(`/api/orders/${id}/accept`, {
+    method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({minutes, staffName})
+  }),
+  loadIntoLocker: (id, zone, tray, staffName) => apiFetch(`/api/orders/${id}/load`, {
+    method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({zone, tray, staffName})
+  }),
+  deliverOrder: (id, by) => apiFetch(`/api/orders/${id}/deliver`, {
+    method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({by})
+  }),
+};
+
+function showToast(msg, duration){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), duration || 1800);
+}
+
+function persistStudentOrder(){
+  try{
+    if(state.currentOrder) localStorage.setItem(LS_ORDER, JSON.stringify(state.currentOrder));
+    else localStorage.removeItem(LS_ORDER);
+  }catch(_){}
+}
+function persistStaffSession(){
+  try{
+    if(state.staffAuthLocation && state.staffAuthName){
+      localStorage.setItem(LS_STAFF, JSON.stringify({
+        name: state.staffAuthName,
+        location: state.staffAuthLocation
+      }));
+    } else {
+      localStorage.removeItem(LS_STAFF);
+    }
+  }catch(_){}
+}
+
+/* ---------- QR simulation ---------- */
+function hashStr(str){
+  let h = 0;
+  for(let i=0;i<str.length;i++){ h = (h*31 + str.charCodeAt(i)) >>> 0; }
+  return h;
+}
+function renderQrGrid(seed){
+  const h = hashStr(seed);
+  let cells = "";
+  for(let i=0;i<121;i++){
+    const bit = (h >> (i % 30)) & 1;
+    const noise = (hashStr(seed + i) % 5 === 0) ? 1 - bit : bit;
+    cells += `<div class="qr-cell ${noise ? '' : 'on'}"></div>`;
+  }
+  return cells;
+}
+function genOrderId(){
+  const letters = "ABCDEFGHJKLMNPQRSTUVWXYZ";
+  const l = letters[Math.floor(Math.random()*letters.length)];
+  const n = Math.floor(100 + Math.random()*900);
+  return l + n;
+}
+function genSecureToken(){
+  return Math.random().toString(36).slice(2) + Date.now().toString(36);
+}
+
+/* ---------- Locker visuals ---------- */
+function renderLockerPanel(zone, tray){
+  const hotCells = TRAYS.map(t=>{
+    const active = zone==='hot' && tray===t;
+    return `<div class="locker-cell ${active?'active hot':''}">${active ? '<span class="locker-cell-dot"></span>' : '🔒'}<span>${t}</span></div>`;
+  }).join('');
+  const coldCells = TRAYS.map(t=>{
+    const active = zone==='cold' && tray===t;
+    return `<div class="locker-cell ${active?'active cold':''}">${active ? '<span class="locker-cell-dot"></span>' : '🔒'}<span>${t}</span></div>`;
+  }).join('');
+  return `
+    <div class="locker-panel">
+      <div class="locker-panel-header">
+        <span class="locker-panel-title">Smart Locker</span>
+        <span class="locker-online"><span class="pulse"></span>ONLINE</span>
+      </div>
+      <div class="locker-zone-label hot">🔥 Горячая зона</div>
+      <div class="locker-grid">${hotCells}</div>
+      <div class="locker-zone-label cold">❄️ Холодная зона</div>
+      <div class="locker-grid">${coldCells}</div>
+    </div>
+  `;
+}
+function renderLockerPicker(zone, tray){
+  const hotCells = TRAYS.map(t=>`<div class="locker-cell active-pick ${zone==='hot'&&tray===t?'active hot':''}" style="cursor:pointer;" onclick="setStaffTray('hot',${t})">${t}</div>`).join('');
+  const coldCells = TRAYS.map(t=>`<div class="locker-cell active-pick ${zone==='cold'&&tray===t?'active cold':''}" style="cursor:pointer;" onclick="setStaffTray('cold',${t})">${t}</div>`).join('');
+  return `
+    <div class="locker-panel">
+      <div class="locker-panel-header">
+        <span class="locker-panel-title">Выберите лоток</span>
+      </div>
+      <div class="locker-zone-label hot">🔥 Горячая</div>
+      <div class="locker-grid">${hotCells}</div>
+      <div class="locker-zone-label cold">❄️ Холодная</div>
+      <div class="locker-grid">${coldCells}</div>
+    </div>
+  `;
+}
+function setStaffTray(zone, tray){
+  state.staffZone = zone;
+  state.staffTray = tray;
+  render();
+}
+
+/* ---------- Formatting ---------- */
+function fmt(n){ return n.toLocaleString('ru-KZ') + " ₸"; }
+function cartCount(){ return Object.values(state.cart).reduce((a,b)=>a+b,0); }
+function cartTotal(){
+  return Object.entries(state.cart).reduce((sum,[id,qty])=>{
+    const item = MENU.find(m=>m.id===id);
+    return sum + (item ? item.price*qty : 0);
+  },0);
+}
+function formatRemaining(readyAt){
+  const diff = readyAt - Date.now();
+  if(diff <= 0) return "должно быть готово с минуты на минуту";
+  const mins = Math.floor(diff/60000);
+  const secs = Math.floor((diff%60000)/1000);
+  if(mins > 0) return `осталось ~${mins} мин`;
+  return `осталось ${secs} сек`;
+}
+function formatMmSs(readyAt){
+  const diff = Math.max(0, readyAt - Date.now());
+  const mins = Math.floor(diff/60000);
+  const secs = Math.floor((diff%60000)/1000);
+  return mins + ":" + String(secs).padStart(2,"0");
+}
+function tickCountdowns(){
+  document.querySelectorAll('[data-ready-at]').forEach(el=>{
+    const readyAt = parseInt(el.getAttribute('data-ready-at'),10);
+    if(el.hasAttribute('data-mmss')) el.textContent = "≈ " + formatMmSs(readyAt) + " осталось";
+    else el.textContent = formatRemaining(readyAt);
+  });
+}
+setInterval(tickCountdowns, 1000);
+
+function itemCategory(item){
+  if(item.category) return item.category;
+  const n = (item.name || "").toLowerCase();
+  if(/чай|кофе|сок|вода|латте|капучино|американо/.test(n)) return "Напитки";
+  if(/круассан|пирожок|булочка|самса/.test(n)) return "Выпечка";
+  if(/сэндвич/.test(n)) return "Холодное";
+  return "Горячее";
+}
+function menuCategories(){
+  return ["Все", ...Array.from(new Set(MENU.map(itemCategory)))];
+}
+function qtyWord(n){
+  const m10 = n % 10, m100 = n % 100;
+  if(m10 === 1 && m100 !== 11) return "позиция";
+  if(m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return "позиции";
+  return "позиций";
+}
+
+function showStudentNav(){
+  if(state.role !== "student") return false;
+  if(state.tab !== "order") return true;
+  return state.step === "menu";
+}
+
+/* ---------- Top-level render ---------- */
+function render(){
+  const app = document.getElementById('app');
+  const isStudent = state.role === 'student';
+  const hideChrome = isStudent && state.tab === 'order' && (state.step === 'hero' || state.step === 'slot' || state.step === 'review' || state.step === 'paying');
+
+  let topbarHtml = '';
+  if(isStudent && !hideChrome){
+    topbarHtml = `
+      <div class="topbar">
+        <div class="topbar-row">
+          <p class="brand">BITE&amp;GO</p>
+          <button class="icon-btn" onclick="toggleMenu()">☰</button>
+        </div>
+      </div>
+      ${state.menuOpen ? `
+        <div class="dropdown-menu">
+          <button onclick="switchToStaffLogin()">👤 Вход для сотрудников</button>
+        </div>
+      ` : ''}
+    `;
+  } else if(!isStudent){
+    topbarHtml = `
+      <div class="topbar">
+        <div class="topbar-row">
+          <p class="brand">BITE&amp;GO<span class="staff-tag">точка</span></p>
+          <button class="icon-btn" onclick="switchToStudent()">✕</button>
+        </div>
+      </div>
+    `;
+  }
+
+  app.innerHTML = `
+    ${serverOffline ? `<div class="storage-warning">⚠️ Нет связи с сервером. Убедитесь, что запущен <code>node server.js</code>, и откройте страницу по адресу из терминала.</div>` : ''}
+    ${topbarHtml}
+    <div class="screen" id="screen"></div>
+    ${showStudentNav() ? renderBottomNav() : ''}
+  `;
+
+  const screen = document.getElementById('screen');
+  if(isStudent){
+    if(state.tab === 'order') renderOrderTab(screen);
+    else if(state.tab === 'tickets') renderTicketsTab(screen);
+    else renderMoreTab(screen);
+  } else {
+    renderStaff(screen);
+  }
+}
+
+function toggleMenu(){ state.menuOpen = !state.menuOpen; render(); }
+function switchToStaffLogin(){ state.role = 'staff'; state.menuOpen = false; state.moreTaps = 0; render(); }
+function switchToStudent(){ state.role = 'student'; state.staffSelectedOrder = null; render(); }
+
+function renderBottomNav(){
+  const hasActiveOrder = state.currentOrder && state.currentOrder.status !== 'delivered';
+  return `
+    <div class="bottom-nav">
+      <button class="${state.tab==='order'?'active':''}" onclick="setTab('order')">
+        <span class="nav-icon">▦</span>Меню
+      </button>
+      <button class="${state.tab==='tickets'?'active':''}" onclick="setTab('tickets')">
+        <span class="nav-icon">▣</span>Заказы
+        ${hasActiveOrder ? '<span class="nav-dot"></span>' : ''}
+      </button>
+      <button class="${state.tab==='more'?'active':''}" onclick="setTab('more')">
+        <span class="nav-icon">···</span>Ещё
+      </button>
+    </div>
+  `;
+}
+function setTab(tab){
+  state.tab = tab;
+  state.menuOpen = false;
+  if(tab === 'order' && (state.step === 'hero' || state.step === 'paying')) state.step = 'menu';
+  render();
+}
+
+/* ================= ORDER TAB (student wizard) ================= */
+function renderOrderTab(el){
+  if(state.step === 'hero') return renderHeroStep(el);
+  if(state.step === 'menu') return renderMenuStep(el);
+  if(state.step === 'slot' || state.step === 'review') return renderCheckoutStep(el);
+  if(state.step === 'paying') return renderPayingStep(el);
+}
+
+function renderHeroStep(el){
+  const loc = state.location || (LOCATIONS[0] || "");
+  el.innerHTML = `
+    <div class="hero-full">
+      <div class="hero-photo">
+        <div class="hero-photo-fallback"></div>
+        <img src="https://images.unsplash.com/photo-1621334953222-c60c19143b0a?w=800&h=600&fit=crop&auto=format" alt="Еда в университетском кафе" onerror="this.style.display='none'">
+        <div class="hero-photo-grad"></div>
+        <div class="hero-photo-top">
+          <span class="brand">BITE&amp;GO</span>
+          <span class="hero-kz">KZ</span>
+        </div>
+      </div>
+      <div class="hero-body">
+        <div>
+          <h1 class="hero-title">Закажи<br>сейчас. <span class="accent">Забери<br>на перемене.</span></h1>
+          <p class="hero-sub">Без очереди. Без регистрации.<br>Твой заказ ждёт в Smart Locker.</p>
+          <label class="field-mono">Точка выдачи</label>
+          <div class="select-wrap">
+            <select class="location-select" onchange="state.location=this.value">
+              ${LOCATIONS.map(l=>`<option value="${l}" ${l===loc?'selected':''}>${l}</option>`).join('')}
+            </select>
+            <span class="select-caret">▾</span>
+          </div>
+        </div>
+        <button class="btn-primary" style="margin-top:24px;" onclick="startFromHero()">СМОТРЕТЬ МЕНЮ →</button>
+      </div>
+    </div>
+  `;
+}
+function startFromHero(){
+  if(!state.location) state.location = LOCATIONS[0];
+  state.step = 'menu';
+  render();
+}
+
+function renderMenuStep(el){
+  const cats = menuCategories();
+  const shown = state.menuCat === "Все" ? MENU : MENU.filter(m => itemCategory(m) === state.menuCat);
+  const count = cartCount();
+  el.innerHTML = `
+    <div class="kicker">МЕНЮ</div>
+    <div style="font-size:11px;color:#444;margin:-4px 0 12px;">${state.location || ""}</div>
+    ${cats.length > 1 ? `
+      <div class="cat-row">
+        ${cats.map(c=>`<button class="cat-chip ${state.menuCat===c?'on':''}" onclick="state.menuCat='${c}';render()">${c}</button>`).join('')}
+      </div>
+    ` : ''}
+    <div class="menu-grid">
+      ${shown.map(item=>{
+        const qty = state.cart[item.id] || 0;
+        const cat = itemCategory(item);
+        const img = item.img ? `<img src="${item.img}" alt="${item.name}" onerror="this.style.display='none'">` : `<img src="" alt="${item.name}" onerror="this.style.display='none'">`;
+        return `
+        <div class="menu-card">
+          <div class="menu-card-photo">
+            ${img}
+            <div class="menu-card-photo-fallback">${cat}</div>
+            <div class="cat-badge">${cat}</div>
+          </div>
+          <div class="menu-card-body">
+            <p class="menu-card-name">${item.name}</p>
+            <p class="menu-card-desc">${item.desc || ""}</p>
+            <div class="menu-card-row">
+              <span class="menu-card-price">${fmt(item.price)}</span>
+              <div class="qty-control">
+                ${qty>0 ? `<button class="qty-btn" onclick="changeQty('${item.id}',-1)">−</button><span class="qty-num">${qty}</span>` : ''}
+                <button class="qty-btn add" onclick="changeQty('${item.id}',1)">+</button>
+              </div>
+            </div>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+    <button type="button" class="cart-bar ${count===0?'hidden':''}" onclick="goToCheckout()">
+      <span class="cart-bar-left">${count} ${qtyWord(count)}</span>
+      <span class="cart-bar-right">${fmt(cartTotal())} →</span>
+    </button>
+    <div class="nav-spacer"></div>
+  `;
+}
+function changeQty(id, delta){
+  const cur = state.cart[id] || 0;
+  const next = Math.max(0, cur + delta);
+  if(next === 0) delete state.cart[id];
+  else state.cart[id] = next;
+  render();
+}
+function goToCheckout(){
+  if(!state.slot && SLOTS[0]) state.slot = SLOTS[0].id;
+  state.step = 'review';
+  render();
+}
+
+function renderSlotStep(el){
+  renderCheckoutStep(el);
+}
+
+function renderReviewStep(el){
+  renderCheckoutStep(el);
+}
+
+function renderCheckoutStep(el){
+  const slot = SLOTS.find(s=>s.id===state.slot) || SLOTS[0];
+  el.innerHTML = `
+    <button class="back-link" onclick="state.step='menu';render()">← назад</button>
+    <div class="kicker">ОФОРМЛЕНИЕ</div>
+    <h2 class="section-title">Ваш заказ</h2>
+    <div class="dark-card" style="margin-bottom:16px;">
+      <div class="field-label" style="margin-bottom:6px;">Точка выдачи</div>
+      <div style="font-size:14px;font-weight:500;">${state.location || ""}</div>
+    </div>
+    <div class="field-label">Время перемены</div>
+    <div class="slot-list">
+      ${SLOTS.map(s=>`
+        <div class="slot-pill ${state.slot===s.id?'selected':''}" onclick="state.slot='${s.id}';render()">
+          <p class="slot-time">${s.time}</p>
+          <p class="slot-note">Ближайшая перемена</p>
+          <div class="radio-dot"></div>
+        </div>
+      `).join('')}
+    </div>
+    <div class="field-label">Состав</div>
+    <div class="dark-card" style="padding:0 16px;margin-bottom:16px;">
+      ${Object.entries(state.cart).map(([id,qty])=>{
+        const item = MENU.find(m=>m.id===id);
+        return `<div class="review-row"><span>${item.name}<div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#444;margin-top:2px;">× ${qty}</div></span><span style="font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--brand);">${fmt(item.price*qty)}</span></div>`;
+      }).join('')}
+    </div>
+    <div class="review-row total" style="border:none;padding:0 4px 16px;"><span style="font-size:12px;color:#666;font-weight:400;">Итого</span><span>${fmt(cartTotal())}</span></div>
+    <button class="btn-primary" ${!state.slot?'disabled':''} onclick="startPayment()" style="box-shadow:0 8px 32px rgba(255,77,0,0.3);">ОПЛАТИТЬ ЧЕРЕЗ KASPI →</button>
+    <p style="text-align:center;font-size:11px;color:#333;margin-top:10px;font-family:'JetBrains Mono',monospace;">оплата имитируется для демо</p>
+  `;
+}
+
+function startPayment(){
+  if(!state.slot) return;
+  state.step = 'paying';
+  render();
+  setTimeout(()=>{ confirmOrder(); }, 1600);
+}
+function renderPayingStep(el){
+  el.innerHTML = `
+    <div class="center-screen">
+      <div class="spinner"></div>
+      <p style="font-weight:600;margin:0 0 6px;">Ожидаем оплату</p>
+      <p style="font-size:13px;color:#666;max-width:260px;">Заказ появится в Locker сразу после подтверждения</p>
+    </div>
+  `;
+}
+
+async function confirmOrder(){
+  const slot = SLOTS.find(s=>s.id===state.slot);
+  const payload = {
+    items: Object.entries(state.cart).map(([id,qty])=>{
+      const item = MENU.find(m=>m.id===id);
+      return {name:item.name, qty, price:item.price};
+    }),
+    total: cartTotal(),
+    location: state.location,
+    slotTime: slot.time,
+  };
+
+  try{
+    const order = await api.createOrder(payload);
+    state.currentOrder = order;
+    persistStudentOrder();
+    state.cart = {};
+    state.slot = null;
+    state.step = 'menu';
+    state.tab = 'tickets';
+    render();
+    showToast(`Сохранено ✓ #${order.id} · «${order.location}»`, 4000);
+  }catch(e){
+    state.step = 'review';
+    render();
+    showToast(`⚠️ Заказ не сохранился: ${e.message}`, 5000);
+  }
+}
+
+/* ================= TICKETS TAB ================= */
+function renderTicketsTab(el){
+  if(!state.currentOrder){
+    el.innerHTML = `
+      <div class="empty-state">
+        <div style="font-size:56px;margin-bottom:16px;">🧃</div>
+        <p class="big">Нет активных заказов</p>
+        <p>Сделайте заказ в меню и он появится здесь</p>
+      </div>
+      <button class="btn-primary" onclick="setTab('order')">Заказать</button>
+      <div class="nav-spacer"></div>
+    `;
+    return;
+  }
+
+  const o = state.currentOrder;
+
+  if(o.status === 'ready' && state.lockerOpening){
+    el.innerHTML = `
+      <div class="locker-panel-center">
+        <div class="unlock-emoji">🔓</div>
+        <p class="unlock-title">Открываем дверцу…</p>
+        <p class="unlock-sub">Заказ #${o.id}</p>
+      </div>
+      <div class="nav-spacer"></div>
+    `;
+    return;
+  }
+
+  const steps = [
+    { key: 'paid', label: STATUS_META.paid.label },
+    { key: 'accepted', label: STATUS_META.accepted.label },
+    { key: 'ready', label: STATUS_META.ready.label },
+    { key: 'delivered', label: STATUS_META.delivered.label },
+  ];
+  const si = steps.findIndex(s => s.key === o.status);
+  const statusColor = o.status === 'ready' ? '#FFB800' : o.status === 'delivered' ? '#4CAF50' : '#FF4D00';
+
+  const timeline = `
+    <div class="timeline">
+      ${steps.map((step, i) => `
+        <div class="tl-row">
+          <div style="display:flex;flex-direction:column;align-items:center;">
+            <div class="tl-dot ${i<=si?'on':'off'}">${i<=si?'✓':(i+1)}</div>
+            ${i < steps.length-1 ? `<div class="tl-line ${i<si?'on':'off'}"></div>` : ''}
+          </div>
+          <div style="padding-bottom:${i<steps.length-1?'16px':'0'};padding-top:4px;flex:1;">
+            <div style="font-size:13px;color:${i<=si?'#F2F0EB':'#383838'};font-weight:${i===si?600:400};">${step.label}</div>
+            ${step.key==='accepted' && o.status==='accepted' && o.readyAt ? `<div data-ready-at="${o.readyAt}" data-mmss="1" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--brand);margin-top:2px;">≈ ${formatMmSs(o.readyAt)} осталось</div>` : ''}
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+
+  const header = `
+    <div class="kicker">ЗАКАЗЫ</div>
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:4px;">
+      <h2 class="section-title" style="margin:0;">#${o.id}</h2>
+      <span class="status-pill" style="background:${statusColor}18;color:${statusColor};border:1px solid ${statusColor}44;">${STATUS_META[o.status] ? STATUS_META[o.status].label : o.status}</span>
+    </div>
+    <div class="status-order-id">${o.slotTime} · ${(o.location||"").split(" — ")[0]}</div>
+  `;
+
+  const itemsBlock = `
+    <div class="dark-card" style="border-radius:20px;">
+      <div class="field-label">Состав заказа</div>
+      ${o.items.map(it=>`<div class="ticket-item-row"><span>${it.name} × ${it.qty}</span><span style="font-family:'JetBrains Mono',monospace;color:var(--brand);font-weight:600;">${fmt(it.price*it.qty)}</span></div>`).join('')}
+      <div class="review-row total"><span style="font-size:11px;color:#555;font-weight:400;">Итого</span><span>${fmt(o.total)}</span></div>
+    </div>
+  `;
+
+  if(o.status === 'ready'){
+    el.innerHTML = `
+      ${header}
+      ${timeline}
+      <div class="locker-moment">
+        <div class="box-icon">📦</div>
+        <p class="locker-wordmark">BITE&amp;GO LOCKER</p>
+        <p class="locker-headline">ЗАКАЗ ГОТОВ</p>
+        <p class="locker-code">#${o.id}</p>
+      </div>
+      ${renderLockerPanel(o.zone, o.tray)}
+      <p style="text-align:center;font-size:13px;color:#555;margin-bottom:0;">Поднесите телефон к Locker</p>
+      <div class="qr-wrap"><div class="qr-grid" id="qr-live">${renderQrGrid(o.token)}</div></div>
+      <p class="qr-refresh-note">QR обновляется, пока заказ ждёт в Locker</p>
+      <button class="btn-primary" onclick="startLockerOpen('${o.id}')">ОТКРЫТЬ LOCKER 🔓</button>
+      <button class="btn-text" onclick="state.showStaffFallbackQr=!state.showStaffFallbackQr;render()">Не открывается? Показать код сотруднику</button>
+      ${state.showStaffFallbackQr ? `<p style="text-align:center;font-family:'Unbounded',sans-serif;font-weight:700;font-size:22px;margin-top:10px;">#${o.id}</p>` : ''}
+      <div style="height:16px"></div>
+      ${itemsBlock}
+      <div class="nav-spacer"></div>
+    `;
+    return;
+  }
+
+  if(o.status === 'delivered'){
+    el.innerHTML = `
+      ${header}
+      ${timeline}
+      <div class="locker-panel-center" style="margin-bottom:16px;">
+        <div class="unlock-emoji">✅</div>
+        <p class="unlock-title">Заказ получен</p>
+        <p class="unlock-sub">Спасибо, что выбрали Bite&amp;Go</p>
+      </div>
+      <div style="margin-bottom:18px;">${itemsBlock}</div>
+      <button class="btn-primary" onclick="resetStudentFlow()">Оформить новый заказ</button>
+      <div class="nav-spacer"></div>
+    `;
+    return;
+  }
+
+  const meta = STATUS_META[o.status];
+  el.innerHTML = `
+    ${header}
+    ${timeline}
+    <div class="status-card">
+      <div class="status-line"><span class="dot" style="background:${meta.dot}"></span>${meta.label}</div>
+      <p class="status-order-id">Заказ #${o.id} · ${o.slotTime} · ${o.location}</p>
+      ${o.status === 'accepted' ? `
+        <div class="prep-banner">
+          <span>👨‍🍳 Готовится</span>
+          <span data-ready-at="${o.readyAt}">${formatRemaining(o.readyAt)}</span>
+        </div>
+      ` : `
+        <div class="prep-banner"><span>⏳ Ждём, когда точка примет заказ</span></div>
+      `}
+    </div>
+    ${itemsBlock}
+    <div class="nav-spacer"></div>
+  `;
+}
+
+function startLockerOpen(id){
+  state.lockerOpening = true;
+  render();
+  setTimeout(async ()=>{
+    try{
+      const order = await api.deliverOrder(id, 'Студент (самообслуживание Locker)');
+      state.currentOrder = order;
+      persistStudentOrder();
+    }catch(e){
+      showToast(`⚠️ Не удалось открыть Locker: ${e.message}`, 4000);
+    }
+    state.lockerOpening = false;
+    render();
+  }, 1800);
+}
+
+function resetStudentFlow(){
+  state.currentOrder = null;
+  persistStudentOrder();
+  state.showStaffFallbackQr = false;
+  state.tab = 'order';
+  state.step = 'menu';
+  render();
+}
+
+/* ================= MORE TAB ================= */
+function renderMoreTab(el){
+  el.innerHTML = `
+    <div class="kicker">ЕЩЁ</div>
+    <h2 class="section-title">Как это<br>работает</h2>
+    <div class="more-card">
+      <div class="more-icon">🍔</div>
+      <div>
+        <div class="more-step">ШАГ 01</div>
+        <h3>Выбери меню</h3>
+        <p>Открой приложение, выбери точку выдачи и добавь позиции в корзину.</p>
+      </div>
+    </div>
+    <div class="more-card">
+      <div class="more-icon">💳</div>
+      <div>
+        <div class="more-step">ШАГ 02</div>
+        <h3>Оплати онлайн</h3>
+        <p>Укажи время перемены и подтверди оплату через Kaspi Pay.</p>
+      </div>
+    </div>
+    <div class="more-card">
+      <div class="more-icon">👨‍🍳</div>
+      <div>
+        <div class="more-step">ШАГ 03</div>
+        <h3>Готовится без тебя</h3>
+        <p>Сотрудники получат уведомление и загрузят заказ в Smart Locker.</p>
+      </div>
+    </div>
+    <div class="more-card">
+      <div class="more-icon">🔓</div>
+      <div>
+        <div class="more-step">ШАГ 04</div>
+        <h3>Забери на перемене</h3>
+        <p>Открой вкладку Заказы → нажми «Открыть Locker». Без очереди.</p>
+      </div>
+    </div>
+    <div class="more-card" style="display:block;">
+      <h3>Locker</h3>
+      <p>Ваш заказ хранится в отдельном изолированном лотке — горячая или холодная зона — и выдаётся только вам.</p>
+    </div>
+    <div class="more-card" style="display:block;">
+      <h3>Без регистрации</h3>
+      <p>Мы не собираем твои данные. Заказ привязан к уникальному токену — он хранится только на твоём устройстве и переживает перезагрузку страницы.</p>
+    </div>
+    <div class="more-card" style="display:block;">
+      <h3>Для персонала точки</h3>
+      <p style="margin-bottom:12px;">Принимаете и загружаете заказы в Locker через отдельную панель сотрудника.</p>
+      <button class="btn-secondary" style="margin-top:0;" onclick="switchToStaffLogin()">Вход для сотрудников →</button>
+    </div>
+    <button class="easter" onclick="tapStaffEaster()">BITE&amp;GO v1.0 · KZ</button>
+    ${state.moreTaps > 0 && state.moreTaps < 5 ? `<div style="text-align:center;font-size:10px;color:#2A2A2A;margin-top:6px;font-family:'JetBrains Mono',monospace;">${5-state.moreTaps} касан${(5-state.moreTaps)===1?'ие':'ия'} до входа</div>` : ''}
+    <div class="nav-spacer"></div>
+  `;
+}
+function tapStaffEaster(){
+  state.moreTaps = (state.moreTaps || 0) + 1;
+  if(state.moreTaps >= 5){
+    state.moreTaps = 0;
+    switchToStaffLogin();
+    return;
+  }
+  render();
+}
+
+/* ================= STAFF ================= */
+function renderStaff(el){
+  if(!state.staffAuthLocation) return renderStaffLogin(el);
+  if(state.staffSelectedOrder) return renderStaffFulfil(el);
+  renderStaffDashboard(el);
+}
+
+function renderStaffLogin(el){
+  el.innerHTML = `
+    <div style="padding-top:8px;">
+      <button class="back-link" onclick="switchToStudent()">← назад</button>
+      <div class="kicker">СОТРУДНИК</div>
+      <h2 class="section-title">Вход в<br>панель</h2>
+      <p class="field-label">Персональный код (8 символов)</p>
+      <input type="text" inputmode="text" maxlength="8" placeholder="AL7K2XQ9"
+        class="text-input"
+        value="${state.staffPinInput}"
+        oninput="state.staffPinInput=this.value.toUpperCase()"
+        onkeydown="if(event.key==='Enter') staffLogin()">
+      <button class="btn-primary" onclick="staffLogin()">ВОЙТИ</button>
+      <p style="font-size:12px;color:#555;margin-top:14px;line-height:1.5;">
+        Код выдаёт администратор точки каждому сотруднику лично. Для демо (см. config.js на сервере): Алия — AL7K2XQ9, Данияр — DN4P8WZ1, Ерлан — ER3M6TC5, Жанна — ZH9L2VB7, Санжар — SJ5Q1KX8, Айгерим — AG8R4NP2, Тимур — TM2C7YQ4, Дина — DN6X3LK9.
+      </p>
+    </div>
+  `;
+}
+async function staffLogin(){
+  const inp = document.querySelector('.text-input');
+  const code = ((inp && inp.value) ? inp.value : state.staffPinInput).trim().toUpperCase();
+  state.staffPinInput = code;
+  try{
+    const account = await api.staffLogin(code);
+    state.staffAuthLocation = account.location;
+    state.staffAuthName = account.name;
+    state.staffPinInput = "";
+    persistStaffSession();
+    showToast(`Добро пожаловать, ${account.name} · ${account.location}`);
+    render();
+  }catch(e){
+    showToast(e.message === 'Нет связи с сервером' ? e.message : "Код не найден");
+  }
+}
+function staffLogout(){
+  state.staffAuthLocation = null;
+  state.staffAuthName = null;
+  state.staffSelectedOrder = null;
+  state.staffPinInput = "";
+  persistStaffSession();
+  render();
+}
+
+async function renderStaffDashboard(el){
+  el.innerHTML = `<p style="text-align:center;color:#555;font-size:13px;padding-top:30px;">Загрузка заказов…</p>`;
+  let orders = [], totalAllLocations = null;
+  try{
+    orders = await api.listOrders(state.staffAuthLocation);
+    try{ totalAllLocations = (await api.listOrders()).length; }catch(_){ /* debug line only, non-critical */ }
+  }catch(e){
+    el.innerHTML = `<div class="empty-state"><p class="big">Не удалось загрузить заказы</p><p>${e.message}</p></div>`;
+    return;
+  }
+
+  const newOrders = orders.filter(o=>o.status==='paid').sort((a,b)=>a.createdAt-b.createdAt);
+  const inProgress = orders.filter(o=>o.status==='accepted').sort((a,b)=>a.readyAt-b.readyAt);
+  const ready = orders.filter(o=>o.status==='ready').sort((a,b)=>a.createdAt-b.createdAt);
+
+  const f = state.staffFilter;
+  const showNew = f==='all' || f==='paid';
+  const showProgress = f==='all' || f==='accepted';
+  const showReady = f==='all' || f==='ready';
+
+  const badge = (cls, label, color) =>
+    `<span class="staff-badge" style="background:${color}18;color:${color};border:1px solid ${color}44;">${label}</span>`;
+
+  const card = (o, cls) => `
+    <button type="button" class="staff-order-card ${cls}" onclick="openStaffOrder('${o.id}')">
+      <div class="staff-order-top">
+        <span class="staff-order-id">#${o.id}</span>
+        ${cls==='new' ? badge('new','🔴 Новый','#FF4D00') : cls==='progress' ? badge('p','🟠 Готовится','#FFB800') : badge('r','🟢 В Locker','#4CAF50')}
+      </div>
+      <p class="staff-order-items">${o.items.map(i=>i.name+' × '+i.qty).join(', ')}</p>
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <span class="staff-order-slot">${o.slotTime}</span>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:var(--brand);">${fmt(o.total)}</span>
+      </div>
+      <p class="staff-order-loc">${cls==='progress' ? '<span data-ready-at="'+o.readyAt+'">'+formatRemaining(o.readyAt)+'</span>' : (cls==='ready' ? 'ждёт студента' : 'нужно принять')}</p>
+      ${o.acceptedBy ? `<div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#333;margin-top:4px;">принял: ${o.acceptedBy}</div>` : ''}
+    </button>
+  `;
+
+  el.innerHTML = `
+    <div class="staff-session-bar">
+      <span>👤 ${state.staffAuthName} · 📍 ${state.staffAuthLocation}</span>
+      <button onclick="staffLogout()">выйти →</button>
+    </div>
+
+    <div class="stat-row">
+      <div class="stat-box new ${f==='paid'?'active-filter':''}" onclick="setStaffFilter('paid')">
+        <span class="stat-num">${newOrders.length}</span>
+        <span class="stat-label">Новые</span>
+      </div>
+      <div class="stat-box progress ${f==='accepted'?'active-filter':''}" onclick="setStaffFilter('accepted')">
+        <span class="stat-num">${inProgress.length}</span>
+        <span class="stat-label">Готовятся</span>
+      </div>
+      <div class="stat-box ready ${f==='ready'?'active-filter':''}" onclick="setStaffFilter('ready')">
+        <span class="stat-num">${ready.length}</span>
+        <span class="stat-label">В Locker</span>
+      </div>
+    </div>
+    ${totalAllLocations !== null ? `
+      <p style="font-size:10.5px;color:#555;text-align:center;margin:-8px 0 16px;">
+        Всего заказов в базе (все точки) — ${totalAllLocations} · на «${state.staffAuthLocation}» — ${orders.length}
+      </p>
+    ` : ''}
+
+    <div class="scan-input-wrap">
+      <input type="text" placeholder="Поиск по коду заказа..." value="${state.scanInput}" oninput="state.scanInput=this.value.toUpperCase()">
+      <button class="btn-primary" style="width:auto;padding:12px 16px;letter-spacing:0;" onclick="scanByCode()">Найти</button>
+    </div>
+
+    ${showNew ? `<h2 class="section-title" style="font-size:16px;">Новые (${newOrders.length})</h2>${newOrders.map(o=>card(o,'new')).join('') || '<p style="font-size:13px;color:#555;margin-bottom:16px;">Пусто</p>'}` : ''}
+    ${showProgress ? `<h2 class="section-title" style="font-size:16px;">Готовятся (${inProgress.length})</h2>${inProgress.map(o=>card(o,'progress')).join('') || '<p style="font-size:13px;color:#555;margin-bottom:16px;">Пусто</p>'}` : ''}
+    ${showReady ? `<h2 class="section-title" style="font-size:16px;">В Locker (${ready.length})</h2>${ready.map(o=>card(o,'ready')).join('') || '<p style="font-size:13px;color:#555;margin-bottom:16px;">Пусто</p>'}` : ''}
+
+    ${(newOrders.length+inProgress.length+ready.length===0) ? `
+      <div class="empty-state"><p class="big">Пока пусто</p><p>Оплаченные заказы появятся здесь автоматически</p></div>
+      ${totalAllLocations > 0 ? `
+        <p style="text-align:center;font-size:12px;color:#555;margin-top:-10px;">
+          Подсказка: всего заказов на всех точках сейчас — ${totalAllLocations}, но ни один не на «${state.staffAuthLocation}».
+          Проверьте, ту ли точку выбрал студент при заказе.
+        </p>
+      ` : ''}
+    ` : ''}
+  `;
+}
+function setStaffFilter(f){
+  state.staffFilter = (state.staffFilter === f) ? 'all' : f;
+  render();
+}
+
+async function scanByCode(){
+  const code = state.scanInput.trim().toUpperCase();
+  try{
+    const order = await api.getOrder(code);
+    if(order.location !== state.staffAuthLocation){
+      showToast("Заказ не найден на этой точке");
+      return;
+    }
+    openStaffOrder(order.id);
+  }catch(e){
+    showToast("Заказ не найден");
+  }
+}
+function openStaffOrder(id){
+  state.staffSelectedOrder = id;
+  state.staffPrepMinutes = 10;
+  state.staffZone = "hot";
+  state.staffTray = 1;
+  render();
+}
+function backToStaffDashboard(){
+  state.staffSelectedOrder = null;
+  state.scanInput = "";
+  render();
+}
+
+async function renderStaffFulfil(el){
+  let o;
+  try{
+    o = await api.getOrder(state.staffSelectedOrder);
+    if(o.location !== state.staffAuthLocation) o = null;
+  }catch(e){ o = null; }
+  if(!o){
+    el.innerHTML = `<div class="empty-state"><p class="big">Заказ не найден</p></div>
+      <button class="btn-secondary" onclick="backToStaffDashboard()">← К списку</button>`;
+    return;
+  }
+
+  el.innerHTML = `
+    <button class="back-link" onclick="backToStaffDashboard()">← К списку</button>
+    <div class="fulfil-card">
+      <span class="fulfil-badge ${o.status}">${STATUS_META[o.status].label.toUpperCase()}</span>
+      <p class="status-order-id" style="font-size:22px;font-family:'Unbounded',sans-serif;font-weight:700;color:var(--ink);margin-bottom:4px;">#${o.id}</p>
+      <p style="font-size:13px;color:#555;margin-bottom:16px;">${o.slotTime} · ${o.location}</p>
+      <div class="ticket-items" style="margin-bottom:18px;">
+        ${o.items.map(it=>`<div class="ticket-item-row"><span>${it.name} × ${it.qty}</span><span>${fmt(it.price*it.qty)}</span></div>`).join('')}
+        <div class="review-row total"><span>Итого</span><span>${fmt(o.total)}</span></div>
+      </div>
+
+      ${o.status === 'paid' ? `
+        <p class="field-label">Время готовности</p>
+        <div class="prep-time-row">
+          ${[5,10,15,20].map(m=>`<button class="prep-time-btn ${state.staffPrepMinutes===m?'selected':''}" onclick="state.staffPrepMinutes=${m};render()">${m} мин</button>`).join('')}
+        </div>
+        <button class="btn-primary" onclick="acceptOrder('${o.id}', state.staffPrepMinutes)">ПРИНЯТЬ ЗАКАЗ</button>
+      ` : ''}
+
+      ${o.status === 'accepted' ? `
+        <p style="font-size:14px;margin-bottom:14px;">👨‍🍳 Готовится · <strong data-ready-at="${o.readyAt}">${formatRemaining(o.readyAt)}</strong></p>
+        <p class="field-label">Загрузить в Locker</p>
+        <div class="zone-pick">
+          <button class="zone-btn hot ${state.staffZone==='hot'?'on':''}" onclick="state.staffZone='hot';render()">🔥 Горячая</button>
+          <button class="zone-btn cold ${state.staffZone==='cold'?'on':''}" onclick="state.staffZone='cold';render()">❄️ Холодная</button>
+        </div>
+        ${renderLockerPicker(state.staffZone, state.staffTray)}
+        <button class="btn-gold" style="margin-top:14px;" onclick="loadIntoLocker('${o.id}', state.staffZone, state.staffTray)">ЗАГРУЗИТЬ В LOCKER</button>
+      ` : ''}
+
+      ${o.status === 'ready' ? `
+        <p style="font-size:12px;color:#555;margin-bottom:12px;">Принял: ${o.acceptedBy || '—'} · Загрузил: ${o.loadedBy || '—'}</p>
+        ${renderLockerPanel(o.zone, o.tray)}
+        <p style="font-size:13px;color:#555;margin-bottom:14px;">Ожидаем, когда студент откроет Locker телефоном.</p>
+        <button class="btn-sage" style="margin-top:0;" onclick="markDelivered('${o.id}')">РУЧНАЯ ВЫДАЧА 🔑</button>
+      ` : ''}
+
+      ${o.status === 'delivered' ? `
+        <p style="font-size:13px;color:#555;">Этот код уже использован и не может быть принят повторно.<br>Выдал: ${o.deliveredBy || '—'}</p>
+      ` : ''}
+    </div>
+  `;
+}
+
+async function acceptOrder(id, minutes){
+  try{
+    await api.acceptOrder(id, minutes, state.staffAuthName);
+    showToast(`Принято · будет готово через ${minutes} мин`);
+    render();
+  }catch(e){
+    showToast(`⚠️ ${e.message}`, 3000);
+  }
+}
+async function loadIntoLocker(id, zone, tray){
+  try{
+    await api.loadIntoLocker(id, zone, tray, state.staffAuthName);
+    showToast(`Загружено · ${zone==='hot'?'🔥 горячая':'❄️ холодная'} · лоток ${tray}`);
+    render();
+  }catch(e){
+    showToast(`⚠️ ${e.message}`, 3000);
+  }
+}
+async function markDelivered(id){
+  try{
+    const order = await api.deliverOrder(id, state.staffAuthName + ' (вручную)');
+    if(order.status !== 'delivered'){ showToast("Уже выдан — второй раз получить нельзя"); return; }
+    showToast("Заказ выдан ✓");
+    render();
+  }catch(e){
+    showToast(`⚠️ ${e.message}`, 3000);
+  }
+}
+
+/* ---------- Cross-tab polling ---------- */
+setInterval(async ()=>{
+  const active = document.activeElement;
+  const typing = active && active.tagName === 'INPUT';
+
+  if(state.role === 'student' && state.tab === 'tickets' && state.currentOrder && !state.lockerOpening){
+    try{
+      const match = await api.getOrder(state.currentOrder.id);
+      const changed = match.status !== state.currentOrder.status;
+      state.currentOrder = match;
+      persistStudentOrder();
+      if(changed){ render(); return; }
+    }catch(e){ /* transient network hiccup — try again next tick */ }
+    const qrEl = document.getElementById('qr-live');
+    if(qrEl && state.currentOrder){
+      state.currentOrder.token = genSecureToken();
+      qrEl.innerHTML = renderQrGrid(state.currentOrder.token);
+    }
+  } else if(state.role === 'staff' && state.staffAuthLocation && !typing){
+    const screen = document.getElementById('screen');
+    if(screen){
+      if(state.staffSelectedOrder) renderStaffFulfil(screen);
+      else renderStaffDashboard(screen);
+    }
+  }
+}, 5000);
+
+/* ---------- Init ---------- */
+async function boot(){
+  document.getElementById('app').innerHTML = `
+    <div class="center-screen" style="padding-top:120px;">
+      <div class="spinner"></div>
+      <p style="font-weight:600;">Подключаемся к серверу…</p>
+    </div>
+  `;
+  try{
+    const cfg = await api.config();
+    LOCATIONS = cfg.locations;
+    MENU = cfg.menu;
+    SLOTS = cfg.slots;
+    state.location = LOCATIONS[0];
+  }catch(e){
+    // render() will show the "server offline" banner; leave arrays empty so
+    // the menu/location UI just renders blank until the server comes back.
+  }
+
+  try{
+    const raw = localStorage.getItem(LS_ORDER);
+    if(raw){
+      const saved = JSON.parse(raw);
+      if(saved && saved.id){
+        try{
+          state.currentOrder = await api.getOrder(saved.id);
+        }catch(_){
+          state.currentOrder = saved;
+        }
+        persistStudentOrder();
+      }
+    }
+  }catch(_){}
+
+  try{
+    const sraw = localStorage.getItem(LS_STAFF);
+    if(sraw){
+      const s = JSON.parse(sraw);
+      if(s && s.name && s.location){
+        state.staffAuthName = s.name;
+        state.staffAuthLocation = s.location;
+      }
+    }
+  }catch(_){}
+
+  render();
+}
+boot();
+</script>
+</body>
+</html>

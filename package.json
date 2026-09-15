@@ -1,0 +1,13 @@
+{
+  "name": "bitego",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Bite&Go — backend (Node.js built-in http + node:sqlite, no dependencies)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=22.5.0"
+  }
+}
