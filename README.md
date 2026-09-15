@@ -1,114 +1,24 @@
-# Bite&Go — backend
+# Bite&Go 🍽️
 
-Node.js → SQLite → API → твой фронтенд. Без единой команды `npm install` — всё
-на встроенных модулях Node.js (`http` и `node:sqlite`), потому что твоя версия
-Node уже это умеет.
+Smart locker food ordering system for NU.
 
-## Требования
-
-- **Node.js 22.5 или новее** (нужен для `node:sqlite`). Проверить: `node --version`.
-  Если версия старше — самый простой путь: поставить свежий Node с nodejs.org,
-  либо сказать мне, и я перепишу `database.js` на пакет `better-sqlite3`
-  (тогда понадобится `npm install better-sqlite3`).
-
-## Структура проекта
-
-```
-bitego/
-├── public/
-│   └── index.html      ← фронтенд (тот же дизайн, но теперь ходит на сервер через fetch)
-├── server.js            ← HTTP-сервер + все /api/* маршруты
-├── database.js           ← вся работа с SQLite (создание таблицы, запросы)
-├── config.js              ← меню, точки, слоты, демо-аккаунты сотрудников
-├── package.json
-└── bitego.db              ← база данных (создаётся автоматически при первом запуске)
-```
-
-## Шаг 1. Запуск
+## Setup
 
 ```bash
-cd bitego
-node server.js
+npm install
+npm start
 ```
 
-Увидишь:
+Open http://localhost:3000
 
-```
-Bite&Go server running: http://localhost:3000
-```
+## Staff Codes
 
-Открой `http://localhost:3000` в браузере — это тот же интерфейс, что был в
-артефакте, но теперь заказы реально сохраняются в файл `bitego.db` рядом с
-сервером, а не в память вкладки.
+- **1234** - Алмас
+- **5678** - Айнур  
+- **9999** - Ерлан
 
-## Шаг 2. Проверка, что всё связано
+## Architecture
 
-1. Оформи заказ как студент (вкладка "Главная" → меню → слот → оплата).
-2. Открой `☰` → "Вход для сотрудников" → войди одним из демо-кодов
-   (они перечислены в `config.js`, например Алия — `AL7K2XQ9`, точка А).
-3. Заказ должен появиться в разделе "Новые" — если у него та же точка,
-   что выбрал студент.
-
-Если что-то не сходится, в приложении внизу дашборда сотрудника есть строка
-"Всего заказов в базе — N, на этой точке — M" — сразу видно, где расхождение.
-
-## API, которое получилось
-
-| Метод | Путь                        | Что делает |
-|-------|-----------------------------|------------|
-| GET   | `/api/config`               | меню, точки, слоты — для отрисовки фронтенда |
-| POST  | `/api/staff/login`          | `{code}` → `{name, location}` или 401 |
-| POST  | `/api/orders`                | создать заказ → сервер сам выдаёт `id` и `token` |
-| GET   | `/api/orders?location=...`  | список заказов (для дашборда сотрудника) |
-| GET   | `/api/orders/:id`           | один заказ (для опроса статуса и поиска по коду) |
-| POST  | `/api/orders/:id/accept`    | `{minutes, staffName}` → paid → accepted |
-| POST  | `/api/orders/:id/load`      | `{zone, tray, staffName}` → accepted → ready (загружен в Locker) |
-| POST  | `/api/orders/:id/deliver`   | `{by}` → ready → delivered (самообслуживание студента или вручную) |
-
-Я сознательно сделал не один общий `PATCH /api/orders/:id` (как в твоём
-наброске), а отдельные `POST .../accept`, `.../load`, `.../deliver`. Так
-сервер сам решает, какие поля можно менять на каждом шаге, и фронтенд не может
-случайно (или специально) подменить произвольное поле заказа напрямую.
-
-## Таблица в SQLite
-
-Почти как ты предложил, плюс поле для состава заказа:
-
-```sql
-CREATE TABLE orders (
-    id            TEXT PRIMARY KEY,
-    token         TEXT NOT NULL,
-    items_json    TEXT NOT NULL,   -- [{name, qty, price}, ...] как JSON-строка
-    total         INTEGER NOT NULL,
-    location      TEXT NOT NULL,
-    slot          TEXT NOT NULL,
-    status        TEXT NOT NULL DEFAULT 'paid',
-    created_at    INTEGER NOT NULL,
-    prep_minutes  INTEGER,
-    ready_at      INTEGER,
-    accepted_by   TEXT,
-    zone          TEXT,
-    tray          INTEGER,
-    loaded_by     TEXT,
-    delivered_by  TEXT
-);
-```
-
-## Что дальше (когда будешь готов)
-
-Это рабочий MVP-бэкенд, но перед реальным запуском стоит закрыть:
-
-1. **Коды сотрудников хранятся в открытом виде в `config.js`.** Для продакшена —
-   таблица `staff` в базе + хешировать код (bcrypt), а не сравнивать напрямую.
-2. **Нет настоящей защиты сессии сотрудника** — сейчас фронтенд просто помнит
-   имя/точку после логина. Для реального запуска нужен токен сессии
-   (JWT или cookie), иначе кто угодно с открытыми devtools может подделать
-   `state.staffAuthLocation` в браузере.
-3. **`bitego.db` — один файл на диске.** Отлично для пилота на 1–2 точки.
-   Если вырастете до многих точек одновременно — стоит перейти на
-   Postgres/MySQL, схема останется почти такой же.
-4. **HTTPS и реальный домен** — сейчас всё живёт на `localhost`. Для запуска
-   среди студентов нужен обычный хостинг (Render, Railway, VPS) с доменом,
-   плюс подключение оплаты (Kaspi), про которое мы говорили раньше.
-
-Скажи, если хочешь, чтобы я сделал любой из этих шагов следующим.
+- **index.html** - Full SPA (student + staff views)
+- **server.js** - Express API + static server
+- In-memory data (orders persist during session)

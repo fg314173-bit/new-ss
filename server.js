@@ -1,169 +1,194 @@
-const http = require("node:http");
-const fs = require("node:fs");
-const path = require("node:path");
-const { URL } = require("node:url");
+const express = require('express');
+const cors = require('cors');
+const bodyParser = require('body-parser');
+const path = require('path');
 
-const { LOCATIONS, MENU, SLOTS, STAFF_ACCOUNTS } = require("./config");
-const db = require("./database");
-
+const app = express();
 const PORT = process.env.PORT || 3000;
-const PUBLIC_DIR = path.join(__dirname, "public");
 
-// ---------- tiny helpers ----------
+app.use(cors());
+app.use(bodyParser.json());
+app.use(express.static(path.join(__dirname)));
+
+/* ============ In-memory database ============ */
+const orders = new Map();
+
+const CONFIG = {
+  locations: [
+    "NU – Дом студента (Корп. Е)",
+    "NU – Столовая (Корп. М)",
+    "NU – Библиотека (Корп. А)",
+  ],
+  menu: [
+    { id: "1", name: "Плов с курицей", desc: "Пикантный узбекский плов", price: 1500, category: "Горячее", img: null },
+    { id: "2", name: "Греческий салат", desc: "Овощи, сыр фета, оливки", price: 900, category: "Холодное", img: null },
+    { id: "3", name: "Эспрессо", desc: "Классический кофе", price: 400, category: "Напитки", img: null },
+    { id: "4", name: "Капучино", desc: "Кофе с молочной пеной", price: 550, category: "Напитки", img: null },
+    { id: "5", name: "Круассан", desc: "Хрустящий французский", price: 600, category: "Выпечка", img: null },
+    { id: "6", name: "Сэндвич Куриный", desc: "Две булки, курица, овощи", price: 1200, category: "Холодное", img: null },
+    { id: "7", name: "Лазанья Болоньезе", desc: "Классическая итальянская", price: 2100, category: "Горячее", img: null },
+    { id: "8", name: "Фреш апельсин", desc: "Свежевыжатый сок", price: 800, category: "Напитки", img: null },
+  ],
+  slots: Array.from({ length: 12 }, (_, i) => {
+    const hour = 12 + Math.floor(i / 2);
+    const minute = (i % 2) * 30;
+    return {
+      id: `slot_${i}`,
+      time: `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`,
+      available: true,
+    };
+  }),
+};
+
+const STAFF_CODES = {
+  "1234": { name: "Алмас", location: "NU – Дом студента (Корп. Е)" },
+  "5678": { name: "Айнур", location: "NU – Столовая (Корп. М)" },
+  "9999": { name: "Ерлан", location: "NU – Библиотека (Корп. А)" },
+};
+
 function genOrderId() {
   const letters = "ABCDEFGHJKLMNPQRSTUVWXYZ";
   const l = letters[Math.floor(Math.random() * letters.length)];
   const n = Math.floor(100 + Math.random() * 900);
   return l + n;
 }
-function genSecureToken() {
-  return Math.random().toString(36).slice(2) + Date.now().toString(36);
-}
-function sendJson(res, status, data) {
-  const body = JSON.stringify(data);
-  res.writeHead(status, {
-    "Content-Type": "application/json; charset=utf-8",
-    "Content-Length": Buffer.byteLength(body),
-  });
-  res.end(body);
-}
-function readBody(req) {
-  return new Promise((resolve, reject) => {
-    let raw = "";
-    req.on("data", (chunk) => {
-      raw += chunk;
-      if (raw.length > 1e6) req.destroy(); // 1MB guard
-    });
-    req.on("end", () => {
-      if (!raw) return resolve({});
-      try {
-        resolve(JSON.parse(raw));
-      } catch (e) {
-        reject(e);
-      }
-    });
-    req.on("error", reject);
-  });
-}
-const MIME = {
-  ".html": "text/html; charset=utf-8",
-  ".js": "text/javascript; charset=utf-8",
-  ".css": "text/css; charset=utf-8",
-  ".json": "application/json; charset=utf-8",
-  ".png": "image/png",
-  ".jpg": "image/jpeg",
-  ".svg": "image/svg+xml",
-};
 
-function serveStatic(req, res, pathname) {
-  let filePath = path.join(PUBLIC_DIR, pathname === "/" ? "index.html" : pathname);
-  // prevent path traversal outside /public
-  if (!filePath.startsWith(PUBLIC_DIR)) {
-    res.writeHead(403);
-    return res.end("Forbidden");
-  }
-  fs.readFile(filePath, (err, content) => {
-    if (err) {
-      res.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" });
-      return res.end("Не найдено: " + pathname);
-    }
-    const ext = path.extname(filePath);
-    res.writeHead(200, { "Content-Type": MIME[ext] || "application/octet-stream" });
-    res.end(content);
-  });
-}
+/* ============ API Routes ============ */
 
-// ---------- request handler ----------
-const server = http.createServer(async (req, res) => {
-  const url = new URL(req.url, `http://${req.headers.host}`);
-  const { pathname } = url;
-  const method = req.method;
-
-  try {
-    // ---- config (menu/locations/slots for the frontend) ----
-    if (pathname === "/api/config" && method === "GET") {
-      return sendJson(res, 200, { locations: LOCATIONS, menu: MENU, slots: SLOTS });
-    }
-
-    // ---- staff login ----
-    if (pathname === "/api/staff/login" && method === "POST") {
-      const body = await readBody(req);
-      const code = (body.code || "").trim().toUpperCase();
-      const account = STAFF_ACCOUNTS.find((a) => a.code === code);
-      if (!account) return sendJson(res, 401, { error: "Код не найден" });
-      return sendJson(res, 200, { name: account.name, location: account.location });
-    }
-
-    // ---- create order ----
-    if (pathname === "/api/orders" && method === "POST") {
-      const body = await readBody(req);
-      if (!Array.isArray(body.items) || body.items.length === 0) {
-        return sendJson(res, 400, { error: "Пустой заказ" });
-      }
-      if (!LOCATIONS.includes(body.location)) {
-        return sendJson(res, 400, { error: "Неизвестная точка" });
-      }
-      const order = db.createOrder({
-        id: genOrderId(),
-        token: genSecureToken(),
-        items: body.items,
-        total: body.total,
-        location: body.location,
-        slotTime: body.slotTime,
-        createdAt: Date.now(),
-      });
-      return sendJson(res, 201, order);
-    }
-
-    // ---- list orders (?location=...) ----
-    if (pathname === "/api/orders" && method === "GET") {
-      const location = url.searchParams.get("location") || undefined;
-      return sendJson(res, 200, db.listOrders({ location }));
-    }
-
-    // ---- order actions: /api/orders/:id[/action] ----
-    const m = pathname.match(/^\/api\/orders\/([A-Z0-9]+)(?:\/(accept|load|deliver))?$/i);
-    if (m) {
-      const id = m[1].toUpperCase();
-      const action = m[2];
-
-      if (!action && method === "GET") {
-        const order = db.getOrder(id);
-        if (!order) return sendJson(res, 404, { error: "Заказ не найден" });
-        return sendJson(res, 200, order);
-      }
-
-      if (action === "accept" && method === "POST") {
-        const body = await readBody(req);
-        const order = db.acceptOrder(id, { minutes: Number(body.minutes) || 10, staffName: body.staffName || "—" });
-        return sendJson(res, 200, order);
-      }
-
-      if (action === "load" && method === "POST") {
-        const body = await readBody(req);
-        const order = db.loadIntoLocker(id, { zone: body.zone, tray: body.tray, staffName: body.staffName || "—" });
-        return sendJson(res, 200, order);
-      }
-
-      if (action === "deliver" && method === "POST") {
-        const body = await readBody(req);
-        const order = db.deliverOrder(id, { by: body.by || "—" });
-        return sendJson(res, 200, order);
-      }
-    }
-
-    // ---- static frontend ----
-    if (method === "GET") {
-      return serveStatic(req, res, pathname);
-    }
-
-    sendJson(res, 404, { error: "Not found" });
-  } catch (err) {
-    console.error(err);
-    sendJson(res, 500, { error: "Server error", detail: String(err.message || err) });
-  }
+// GET /api/config - Config
+app.get('/api/config', (req, res) => {
+  res.json(CONFIG);
 });
 
-server.listen(PORT, () => {
-  console.log(`Bite&Go server running: http://localhost:${PORT}`);
+// POST /api/orders - Create order
+app.post('/api/orders', (req, res) => {
+  const { location, items, slot, phone } = req.body;
+  
+  if (!location || !items || !slot) {
+    return res.status(400).json({ error: "location, items, slot required" });
+  }
+
+  const orderId = genOrderId();
+  const now = Date.now();
+  const slotObj = CONFIG.slots.find(s => s.id === slot);
+  const slotTime = slotObj ? slotObj.time : "12:00";
+
+  const total = items.reduce((sum, item) => {
+    const menuItem = CONFIG.menu.find(m => m.id === item.id);
+    return sum + (menuItem ? menuItem.price * item.qty : 0);
+  }, 0);
+
+  const order = {
+    id: orderId,
+    location,
+    items,
+    slot,
+    slotTime,
+    phone: phone || "",
+    status: "paid",
+    total,
+    createdAt: now,
+    readyAt: now + 15 * 60 * 1000,
+    acceptedAt: null,
+    acceptedBy: null,
+    prepMinutes: null,
+    zone: null,
+    tray: null,
+    deliveredAt: null,
+    timeline: [
+      { step: "paid", completedAt: now },
+    ],
+  };
+
+  orders.set(orderId, order);
+  res.json(order);
+});
+
+// GET /api/orders
+app.get('/api/orders', (req, res) => {
+  const { location } = req.query;
+  let result = Array.from(orders.values());
+  
+  if (location) {
+    result = result.filter(o => o.location === location);
+  }
+  
+  res.json(result);
+});
+
+// GET /api/orders/:id
+app.get('/api/orders/:id', (req, res) => {
+  const order = orders.get(req.params.id);
+  if (!order) return res.status(404).json({ error: "Order not found" });
+  res.json(order);
+});
+
+// POST /api/orders/:id/accept
+app.post('/api/orders/:id/accept', (req, res) => {
+  const { minutes, staffName } = req.body;
+  const order = orders.get(req.params.id);
+  
+  if (!order) return res.status(404).json({ error: "Order not found" });
+  
+  const now = Date.now();
+  order.status = "accepted";
+  order.acceptedAt = now;
+  order.acceptedBy = staffName;
+  order.prepMinutes = minutes || 10;
+  order.readyAt = now + (minutes || 10) * 60 * 1000;
+  order.timeline.push({ step: "accepted", completedAt: now });
+  
+  res.json(order);
+});
+
+// POST /api/orders/:id/load
+app.post('/api/orders/:id/load', (req, res) => {
+  const { zone, tray, staffName } = req.body;
+  const order = orders.get(req.params.id);
+  
+  if (!order) return res.status(404).json({ error: "Order not found" });
+  
+  const now = Date.now();
+  order.status = "ready";
+  order.zone = zone;
+  order.tray = tray;
+  order.timeline.push({ step: "ready", completedAt: now });
+  
+  res.json(order);
+});
+
+// POST /api/orders/:id/deliver
+app.post('/api/orders/:id/deliver', (req, res) => {
+  const { by } = req.body;
+  const order = orders.get(req.params.id);
+  
+  if (!order) return res.status(404).json({ error: "Order not found" });
+  
+  const now = Date.now();
+  order.status = "delivered";
+  order.deliveredAt = now;
+  order.timeline.push({ step: "delivered", completedAt: now });
+  
+  res.json(order);
+});
+
+// POST /api/staff/login
+app.post('/api/staff/login', (req, res) => {
+  const { code } = req.body;
+  const staff = STAFF_CODES[code];
+  
+  if (!staff) {
+    return res.status(401).json({ error: "Invalid code" });
+  }
+  
+  res.json(staff);
+});
+
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+app.listen(PORT, () => {
+  console.log(`🍽️  Bite&Go server running on http://localhost:${PORT}`);
+  console.log(`Staff codes: 1234, 5678, 9999`);
 });
